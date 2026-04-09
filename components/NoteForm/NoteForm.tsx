@@ -3,8 +3,10 @@ import { useRouter } from "next/navigation";
 import css from "./NoteForm.module.css";
 import { SyntheticEvent, useId, } from "react";
 
-import { createNote } from "@/lib/api";
+import { createNote, CreateNotePayload } from "@/lib/api";
 import { useNoteDraftStore } from "@/lib/store/noteStore";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Note } from "@/types/note";
 
 type Tag = "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";
 function NoteForm() {
@@ -12,28 +14,32 @@ function NoteForm() {
     const router = useRouter();
     const { draft, setDraft, clearDraft } = useNoteDraftStore();
 
+    const queryClient = useQueryClient();
+    const { mutate, isPending } = useMutation<Note, Error, CreateNotePayload>({
+        mutationFn: createNote,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["notes"] });
+            clearDraft();
+            router.push("/notes/filter/all");
+        },
+        onError: (error) => {
+            console.error(error);
+            alert("Error creating note");
+        },
+    });
+
     const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = event.target;
         setDraft({ ...draft, [name]: value });
-    }
+    };
     const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const formData = new FormData(event.currentTarget);
-        const title = formData.get("title") as string;
-        const content = formData.get("content") as string;
-        const tag = formData.get("tag") as Tag;
-
-        try {
-            await createNote({ title, content, tag });
-            clearDraft();
-            router.push("/notes/filter/all"); 
-          } catch (error) {
-            console.error(error);
-            alert("Error creating note");
-        } 
+        mutate({
+            title: draft.title,
+            content: draft.content,
+            tag: draft.tag as Tag,
+        });
     };
-console.log({draft});
-
     return (
        
         <form className={css.form} onSubmit={handleSubmit}>
@@ -76,7 +82,7 @@ console.log({draft});
                     <option value="Meeting">Meeting</option>
                     <option value="Shopping">Shopping</option>
                 </select>
-                {/* <ErrorMessage name="tag" component="span" className={css.error} /> */}
+               
             </div>
 
             <div className={css.actions}>
@@ -87,9 +93,10 @@ console.log({draft});
                 <button
                     type="submit"
                     className={css.submitButton}
-                   
+                   disabled={isPending}
                 >
                     Create note
+                    {isPending ? "Creating..." : "Create note"}
                 </button>
             </div>
             </form>

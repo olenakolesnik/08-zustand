@@ -1,10 +1,9 @@
-import CreateNote from "./CreateNote";
+import NoteForm from "@/components/NoteForm/NoteForm";
+import type { Metadata } from "next";
 
-
-export const metadata = {
+export const metadata: Metadata = {
     title: "Create Note | NoteHub App",
     description: "Create a new note quickly and easily in NoteHub App.",
-    url: "https://localhost:3000/notes/action/create", 
     openGraph: {
       title: "Create Note | NoteHub App",
       description: "Create a new note quickly and easily in NoteHub App.",
@@ -21,5 +20,5 @@ export const metadata = {
   };
 
 export default function Page() {
-  return <CreateNote />;
+  return <NoteForm />;
 }

@@ -3,7 +3,7 @@
 
 
 import axios from "axios";
-import type { CreateNote, Note } from "../types/note";
+import type { Note } from "../types/note";
 
 
 axios.defaults.baseURL = "https://notehub-public.goit.study/api";
@@ -21,6 +21,11 @@ interface FetchNotesParams {
     perPage?: number;
     tag?: string;
 }
+export type CreateNotePayload = {
+    title: string;
+    content: string;
+    tag: "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";
+  };
 
 export const fetchNotes = async ({
     page = 1,
@@ -55,8 +60,8 @@ export async function fetchNoteById(id: Note["id"]) {
 }
 
   
-export const createNote = async (payload: CreateNote) => {
-    const { data } = await axios.post<Note>("/notes", payload,
+export const createNote = async (payload: CreateNotePayload): Promise<Note> => {
+    const { data } = await axios.post("/notes", payload,
         {
             headers: {
                 Authorization: `Bearer ${TOKEN}`,
