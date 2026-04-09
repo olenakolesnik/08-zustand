@@ -95,7 +95,6 @@ function NoteForm() {
                     className={css.submitButton}
                    disabled={isPending}
                 >
-                    Create note
                     {isPending ? "Creating..." : "Create note"}
                 </button>
             </div>
