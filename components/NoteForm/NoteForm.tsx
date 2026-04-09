@@ -1,30 +1,38 @@
 "use client"
 import { useRouter } from "next/navigation";
 import css from "./NoteForm.module.css";
-import { SyntheticEvent, useId } from "react";
+import { SyntheticEvent, useId, } from "react";
 
 import { createNote } from "@/lib/api";
+import { useNoteDraftStore } from "@/lib/store/noteStore";
 
-
+type Tag = "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";
 function NoteForm() {
     const fieldId = useId();
     const router = useRouter();
+    const { draft, setDraft, clearDraft } = useNoteDraftStore();
 
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = event.target;
+        setDraft({ ...draft, [name]: value });
+    }
     const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const title = formData.get("title") as string;
         const content = formData.get("content") as string;
-        const tag = formData.get("tag") as string;
+        const tag = formData.get("tag") as Tag;
 
         try {
             await createNote({ title, content, tag });
-            router.push("/notes"); 
+            clearDraft();
+            router.push("/notes/filter/all"); 
           } catch (error) {
             console.error(error);
             alert("Error creating note");
-          }
+        } 
     };
+console.log({draft});
 
     return (
        
@@ -34,7 +42,10 @@ function NoteForm() {
                 <input id={`${fieldId}-title`} type="text" name="title" className={css.input}
                required
                minLength={3}
-               maxLength={50} />
+                    maxLength={50}
+                    value={draft.title}
+                    onChange={handleChange}
+                />
            
                 </div>
 
@@ -46,6 +57,8 @@ function NoteForm() {
                     rows={8}
                     className={css.textarea}
                     maxLength={500}
+                    value={draft.content}
+                    onChange={handleChange}
                 />
               
             </div>
@@ -53,7 +66,10 @@ function NoteForm() {
             <div className={css.formGroup}>
                 <label htmlFor={`${fieldId}-tag`}>Tag</label>
                     <select
-                        id={`${fieldId}-tag`} name="tag" className={css.select}>
+                    id={`${fieldId}-tag`} name="tag" className={css.select}
+                    value={draft.tag}
+                    onChange={handleChange}
+                >
                     <option value="Todo">Todo</option>
                     <option value="Work">Work</option>
                     <option value="Personal">Personal</option>
@@ -71,6 +87,7 @@ function NoteForm() {
                 <button
                     type="submit"
                     className={css.submitButton}
+                   
                 >
                     Create note
                 </button>
